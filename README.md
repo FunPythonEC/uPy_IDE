@@ -14,8 +14,9 @@ o
 ### Sin entorno virtual
 `sudo pip3 install --pre toga`
 ### Con entorno virtual
-`python3 -m venv venv`
-***
+~~~~ bash
+python3 -m venv venv
+~~~~
 `source venv/bin/activate`
 ***
 `pip install --pre toga`
