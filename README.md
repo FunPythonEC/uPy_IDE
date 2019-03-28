@@ -12,18 +12,17 @@ Una vez que ya se tengan los minimos requerimientos, y los establecido más abaj
 o
 `python3 -m uPy_IDE`
 ### Sin entorno virtual
-`sudo pip3 install --pre toga`
+~~~~ bash
+sudo pip3 install --pre toga
+~~~~
 ### Con entorno virtual
 ~~~~ bash
 python3 -m venv venv
+source venv/bin/activate
+pip install --pre toga
+pip install pyserial
+pip install python-dotenv
 ~~~~
-`source venv/bin/activate`
-***
-`pip install --pre toga`
-***
-`pip install pyserial`
-***
-`pip install python-dotenv`
 
 
 
