@@ -2609,7 +2609,6 @@ def main(custom_commandline=None):
     expand_file_arguments()
 
     args = parser.parse_args(custom_commandline)
-
     print('esptool.py v%s' % __version__)
 
     # operation function can take 1 arg (args), 2 args (esp, arg)
