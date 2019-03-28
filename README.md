@@ -15,9 +15,13 @@ o
 `sudo pip3 install --pre toga`
 ### Con entorno virtual
 `python3 -m venv venv`
+*** 
 `source venv/bin/activate`
+*** 
 `pip install --pre toga`
+***
 `pip install pyserial`
+***
 `pip install python-dotenv`
 
 
