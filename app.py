@@ -6,7 +6,7 @@ import sys
 import glob
 import serial
 import time
-from uPyIDE import esptool
+import uPy_IDE.esptool as esptool
 
 def serial_ports():
 	if sys.platform.startswith('win'):
@@ -35,55 +35,65 @@ class uPyIDE(toga.App):
 		self.main_window=toga.MainWindow(title=self.name,size=(640,400))
 
 		label_style=Pack(flex=1,padding_right=24)
-		box_style=Pack(direction=ROW,padding=10)
+		box_style_horiz=Pack(direction=ROW,padding=15)
+		box_style_verti=Pack(direction=COLUMN,padding=15)
 
+		#selections
 		self.portselect=toga.Selection(items=serial_ports())
 		self.chipselect=toga.Selection(items=["ESP8266","ESP32"], on_select=self.update_selections)
 		self.verselect=toga.Selection(items=["v1.8.7","v1.9.0","v1.9.1","v1.9.2","v1.9.3","v1.9.4","v1.10.0"])
 
-		self.filelabel=toga.Label("No ha seleccionado ningun archivo")
+		#switchs
+		self.switchdio=toga.Switch('DIO', is_on=False, style=Pack(padding_left=10,padding_top=5))
+
+		self.filelabel=toga.Label("No ha seleccionado ningun archivo", style=Pack(padding=2))
 		self.fname=None
 		self.main_window.content=toga.Box(
 			children=[
+				toga.Box(style=box_style_verti, children=[
 
-				toga.Box(style=box_style, children=[
-					self.portselect,
-					self.chipselect,
-					self.verselect
+					toga.Box(style=Pack(direction=ROW,padding_left=25), children=[
+						self.portselect,
+						self.chipselect,
+						self.verselect,
+						self.switchdio
+						]),
+
+					toga.Box(style=Pack(direction=COLUMN,padding_top=7), children=[
+						toga.Button("Seleccionar archivo", on_press=self.action_open_file_dialog, style=Pack(padding_top=15,padding_left=2)),
+						self.filelabel,
+						toga.Button("Grabar archivo en ESP", on_press=self.save_to_esp, style=Pack(padding=2))
+						])
 					]),
-
-				toga.Box(style=box_style, children=[
+				toga.Box(style=box_style_verti, children=[
 					toga.Button("Flashear",on_press=self.flash),
 					toga.Button("Borrar flash/firmware",on_press=self.eraseflash),
 					toga.Button("Actualizar puertos",on_press=self.update_ports)
-					]),
-
-				toga.Box(style=box_style, children=[
-					toga.Button("Seleccionar archivo",on_press=self.action_open_file_dialog),
-					self.filelabel,
-					toga.Button("Grabar archivo en ESP", on_press=self.save_esp)
 					])
 				])
+
 		self.main_window.show()
 
 
-	def save_esp(self, button):
-		command="python3.6 cli.py -p "+self.portselect.value+" put "+fname
-		os.system(command)
+	def save_to_esp(self, button):
+		from uPy_IDE.pyboard import Pyboard
+		from uPy_IDE import cli
+		eboard=Pyboard(self.portselect.value)
+		cli.put(self.fname,board=eboard)
 
 
 	def flash(self,button):
-		import os
 		port=self.portselect.value
 		chip=self.chipselect.value
 		ver=self.verselect.value
 
 		if chip == "ESP32":
-			command = 'python3.6 esptool.py --chip esp32 --port '+port+' write_flash -z 0x1000 esp32/'+ver+'.bin'
-			os.system(command)
+			esptool.main(["--chip","esp32","--port",self.portselect.value,"write_flash","-z","0x1000","esp32/"+ver+'.bin'])
 		elif chip == "ESP8266":
-			command = 'python3.6 esptool.py --port '+port+' --baud 460800 write_flash --flash_size=detect 0 esp8266/'+ver+'.bin'
-			os.system(command)		
+			if self.switchdio.get_is_on:
+				esptool.main(["--port",self.portselect.value,"--baud","460800","write_flash","--flash_size=detect","0","uPy_IDE/esp8266/"+ver+'.bin'])		
+			else:
+				esptool.main(["--port",self.portselect.value,"--baud","460800","write_flash","--flash_size=detect","-fm","dio","0","uPy_IDE/esp8266/"+ver+'.bin'])		
 
 	def update_ports(self, button):
 		portlist = serial_ports()
@@ -104,15 +114,13 @@ class uPyIDE(toga.App):
 		
 
 	def eraseflash(self,button):
-		import os
+		
 		port=self.portselect.value
 		chip=self.chipselect.value
 		if chip=='ESP32':
-			command='python3.6 esptool.py --chip esp32 erase_flash'
-			os.system(command)
+			esptool.main(["-p",self.portselect.value,"erase_flash"])
 		elif chip=='ESP8266':
-			command='python3.6 esptool.py --port '+port+' erase_flash'
-			os.system(command)
+			esptool.main(["-p",self.portselect.value,"erase_flash"])
 
 	def action_open_file_dialog(self, widget):
 		try:

@@ -35,8 +35,8 @@ config = dotenv.find_dotenv(filename=".ampy", usecwd=True)
 if config:
     dotenv.load_dotenv(dotenv_path=config)
 
-import files as files
-import pyboard as pyboard
+import uPy_IDE.files as files
+import uPy_IDE.pyboard as pyboard
 
 
 _board = None
@@ -194,11 +194,7 @@ def ls(directory, long_format, recursive):
     for f in board_files.ls(directory, long_format=long_format, recursive=recursive):
         print(f)
 
-
-@cli.command()
-@click.argument("local", type=click.Path(exists=True))
-@click.argument("remote", required=False)
-def put(local, remote):
+def put(local, remote=None, board=None):
     """Put a file or folder and its contents on the board.
 
     Put will upload a local file or folder  to the board.  If the file already
@@ -237,7 +233,7 @@ def put(local, remote):
     if os.path.isdir(local):
         # Directory copy, create the directory and walk all children to copy
         # over the files.
-        board_files = files.Files(_board)
+        board_files = files.Files(board)
         for parent, child_dirs, child_files in os.walk(local):
             # Create board filesystem absolute path to parent directory.
             remote_parent = posixpath.normpath(
@@ -259,7 +255,7 @@ def put(local, remote):
         # File copy, open the file and copy its contents to the board.
         # Put the file on the board.
         with open(local, "rb") as infile:
-            board_files = files.Files(_board)
+            board_files = files.Files(board)
             board_files.put(remote, infile.read())
 
 
