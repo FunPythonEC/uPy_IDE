@@ -3,7 +3,7 @@ Proyecto para desarrollar un IDE con opciones de flashear MicroPython en microco
 Pronto se agregara un campo para edición y manejo del cli.
 
 ## Ejecución
-Para ejecutar el script para el editor, debido a que todavia esta en su etapa de desarrollo, no es un ejecutable directamente. Antes para una ejecución precisa, es preferible la creación de un entorno virtual para poder instalar toga y ciertas dependencias que suelen ser necesarias.
+Para poder ejecutar el script, debido a que este se encuentra en etapa de desarrollo, aun no es ejecutable directamente. Para una mejor ejecución es preferible primero la creación de un entorno virtual en el cual pueda instalar toga y ciertas dependencias necesrias. 
 
 Para ello ver los minimos requisitos aquí: https://github.com/pybee/toga/blob/master/README.rst
 
