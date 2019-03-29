@@ -7,7 +7,7 @@ Para ejecutar el script para el editor, debido a que todavia esta en su etapa de
 
 Para ello ver los minimos requisitos aquí: https://github.com/pybee/toga/blob/master/README.rst
 
-Una vez que ya se tengan los minimos requerimientos, y los establecido más abajo, basta con correr el siguiente comando afuera de la carpeta del directorio del proyecto.
+Una vez, se tengan los requerimientos minimos o los establecido para trabajar en entorno virtual(Descritos más adelante), basta con correr el siguiente comando afuera de la carpeta del directorio del proyecto.
 `python -m uPy_IDE`
 o
 `python3 -m uPy_IDE`
