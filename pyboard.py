@@ -148,6 +148,8 @@ class Pyboard:
             if delayed:
                 print('')
 
+        self.uioutput=""
+
     def close(self):
         self.serial.close()
 
@@ -160,8 +162,41 @@ class Pyboard:
             if data.endswith(ending):
                 break
             elif self.serial.inWaiting() > 0:
-                new_data = self.serial.read(1)
+                new_data = self.serial.read(1)     
                 data = data + new_data
+                if data_consumer:
+                    data_consumer(new_data)
+                timeout_count = 0
+            else:
+                timeout_count += 1
+                if timeout is not None and timeout_count >= 100 * timeout:
+                    break
+                time.sleep(0.01)
+        return data
+
+    def read_until_output(self, min_num_bytes, ending, timeout=10, data_consumer=None,ter=None):
+        data = self.serial.read(min_num_bytes)
+        if data_consumer:
+            data_consumer(data)
+        timeout_count = 0
+        while True:
+            if data.endswith(ending):
+                break
+            elif self.serial.inWaiting() > 0:
+                new_data = self.serial.read(1)     
+                data = data + new_data
+                try:
+                    ded=str(data).split("\\")
+                    if ded[-1]=="n'" and ded[-2]=="r":
+                        ded=str(data)[2:-5]
+                        self.uioutput=self.uioutput+ded+"\n"
+                        print(self.uioutput)
+                        ter.value=self.uioutput
+                        ded=None
+                        data=b''
+                except Exception as e:
+                    print(e)
+
                 if data_consumer:
                     data_consumer(new_data)
                 timeout_count = 0
@@ -215,20 +250,22 @@ class Pyboard:
         self.serial.write(b'\r\x02') # ctrl-B: enter friendly REPL
 
     def follow(self, timeout, data_consumer=None):
+
         # wait for normal output
         data = self.read_until(1, b'\x04', timeout=timeout, data_consumer=data_consumer)
         if not data.endswith(b'\x04'):
             raise PyboardError('timeout waiting for first EOF reception')
         data = data[:-1]
-
         # wait for error output
         data_err = self.read_until(1, b'\x04', timeout=timeout)
         if not data_err.endswith(b'\x04'):
             raise PyboardError('timeout waiting for second EOF reception')
         data_err = data_err[:-1]
-
         # return normal and error output
         return data, data_err
+
+    def follow_output(self, timeout, data_consumer=None,term=None):
+        data = self.read_until_output(1, b'\x04', timeout=timeout, data_consumer=data_consumer,ter=term)
 
     def exec_raw_no_follow(self, command):
         if isinstance(command, bytes):
@@ -280,11 +317,13 @@ class Pyboard:
 # but for Python3 we want to provide the nicer version "exec"
 setattr(Pyboard, "exec", Pyboard.exec_)
 
-def execfile(filename, device='/dev/ttyACM0', baudrate=115200, user='micro', password='python'):
+def execfile(filename, device='/dev/ttyACM0', baudrate=115200, user='micro', password='python',terminal=None):
     pyb = Pyboard(device, baudrate, user, password)
     pyb.enter_raw_repl()
-    output = pyb.execfile(filename)
-    stdout_write_bytes(output)
+    with open(filename, 'rb') as f:
+        pyfile = f.read()
+    pyb.exec_raw_no_follow(pyfile)
+    pyb.follow_output(10, None, term=terminal)
     pyb.exit_raw_repl()
     pyb.close()
 

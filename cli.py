@@ -170,7 +170,7 @@ def mkdir(directory, exists_okay):
     is_flag=True,
     help="recursively list all files and (empty) directories.",
 )
-def ls(directory, long_format, recursive):
+def ls(board,directory, long_format, recursive):
     """List contents of a directory on the board.
 
     Can pass an optional argument which is the path to the directory.  The
@@ -190,7 +190,7 @@ def ls(directory, long_format, recursive):
       ampy --port /board/serial/port ls -l /foo/bar
     """
     # List each file/directory on a separate line.
-    board_files = files.Files(_board)
+    board_files = files.Files(board)
     for f in board_files.ls(directory, long_format=long_format, recursive=recursive):
         print(f)
 
@@ -258,10 +258,7 @@ def put(local, remote=None, board=None):
             board_files = files.Files(board)
             board_files.put(remote, infile.read())
 
-
-@cli.command()
-@click.argument("remote_file")
-def rm(remote_file):
+def rm(remote_file,board):
     """Remove a file from the board.
 
     Remove the specified file from the board's filesystem.  Must specify one
@@ -274,7 +271,7 @@ def rm(remote_file):
       ampy --port /board/serial/port rm main.py
     """
     # Delete the provided file/directory on the board.
-    board_files = files.Files(_board)
+    board_files = files.Files(board)
     board_files.rm(remote_file)
 
 
