@@ -43,17 +43,26 @@ class uPyIDE(toga.App):
 		self.chipselect=toga.Selection(items=["ESP8266","ESP32"], on_select=self.update_selections)
 		self.verselect=toga.Selection(items=["v1.8.7","v1.9.0","v1.9.1","v1.9.2","v1.9.3","v1.9.4","v1.10.0"])
 
+		#puerto
+		self.port = None
+		self.port_open=False
+
 		#switchs
 		self.switchdio=toga.Switch('DIO', is_on=False, style=Pack(padding_left=10,padding_top=5))
 
 		#textinputs
 		self.textfile=toga.TextInput(style=Pack(flex=1,width=200))
+		self.commandesp=toga.TextInput(style=Pack(flex=1,width=450))
 
 		#intento de terminal
 		self.textterminal=toga.MultilineTextInput(readonly=False,style=Pack(flex=1,width=600,height=600))
 
 		#textoutputs
 		self.textoutputs=toga.MultilineTextInput(readonly=True,style=Pack(flex=1,width=200,height=200))
+
+		#botones
+		self.btnport=toga.Button("Abrir puerto", on_press=self.open_port, style=Pack(padding=2))
+
 
 		self.filelabel=toga.Label("No ha seleccionado ningun archivo", style=Pack(padding=2))
 		self.fname=None
@@ -80,12 +89,20 @@ class uPyIDE(toga.App):
 						self.textoutputs
 						])
 					]),
-				toga.Box(style=box_style_verti, children=
-[					toga.Button("Flashear",on_press=self.flash),
+				toga.Box(style=box_style_verti, children=[					
+					toga.Button("Flashear",on_press=self.flash),
 					toga.Button("Borrar flash/firmware",on_press=self.eraseflash),
 					toga.Button("Actualizar puertos",on_press=self.update_ports),
-					self.textterminal
+					self.btnport,
+					self.textterminal,
+					
+					toga.Box(style=Pack(direction=ROW,padding_top=7), children=[
+						self.commandesp,
+						toga.Button("Enviar comando", on_press=self.send_command, style=Pack(padding=2))
+						])
+
 					])
+
 				])
 
 		self.main_window.show()
@@ -145,7 +162,28 @@ class uPyIDE(toga.App):
 		self.textterminal.clear()
 		self.textterminal.value=fdata
 
-		
+#======================================SOLO MANEJO DE PUERTO========================================================
+	
+	def open_port(self,button):
+		from uPy_IDE.pyboard import Pyboard
+		if not self.port_open:
+			self.btnport.label="Cerrar puerto"
+			self.port_open=True
+			self.textterminal.clear()
+			self.port=Pyboard(self.portselect.value)
+			self.port.enter_raw_repl()
+			read_port(self.port, self.port_open)
+		else:
+			self.btnport.label="Abrir puerto"
+			self.port_open=False
+			self.port.exit_raw_repl()
+
+	def send_command(self,button):
+		if self.port_open:
+			print(self.commandesp.value)
+			self.port.send(self.commandesp.value)
+
+#===================================================================================================================		
 	#metodos para la parte de esptool
 	def flash(self,button):
 		port=self.portselect.value
@@ -186,6 +224,17 @@ class uPyIDE(toga.App):
 			esptool.main(["-p",self.portselect.value,"erase_flash"])
 		elif chip=='ESP8266':
 			esptool.main(["-p",self.portselect.value,"erase_flash"])
+
+def read_port_thread(port,port_status):
+	while True:
+		if port_status:
+			ans=port.read_until(1, b'\x04', timeout=10, data_consumer=None)
+			print(ans)
+
+def read_port(port, portstatus):
+	import threading
+	runportthread = threading.Thread(target=read_port_thread, args=(port, portstatus))
+	runportthread.start()
 
 def main():
 	return uPyIDE("uPyIDE","org.funpython.upyide")
