@@ -267,6 +267,14 @@ class Pyboard:
     def follow_output(self, timeout, data_consumer=None,term=None):
         data = self.read_until_output(1, b'\x04', timeout=timeout, data_consumer=data_consumer,ter=term)
 
+    def send(self,command):
+        if isinstance(command, bytes):
+            command_bytes = command
+        else:
+            command_bytes = bytes(command, encoding='utf8')
+        self.serial.write(command_bytes)
+        #self.serial.write(b'\x04')
+
     def exec_raw_no_follow(self, command):
         if isinstance(command, bytes):
             command_bytes = command
