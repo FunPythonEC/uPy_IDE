@@ -191,7 +191,7 @@ class uPyIDE(toga.App):
 		ver=self.verselect.value
 
 		if chip == "ESP32":
-			esptool.main(["--chip","esp32","--port",self.portselect.value,"write_flash","-z","0x1000","esp32/"+ver+'.bin'])
+			esptool.main(["--chip","esp32","--port",self.portselect.value,"write_flash","-z","0x1000","uPy_IDE/esp32/"+ver+'.bin'])
 		elif chip == "ESP8266":
 			if self.switchdio.is_on:
 				esptool.main(["--port",self.portselect.value,"--baud","460800","write_flash","--flash_size=detect","0","uPy_IDE/esp8266/"+ver+'.bin'])		
