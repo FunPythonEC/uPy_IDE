@@ -1,0 +1,20 @@
+Metadata-Version: 1.2
+Name: gbulb
+Version: 0.6.1
+Summary: GLib event loop for tulip (PEP 3156)
+Home-page: http://github.com/nathan-hoad/gbulb
+Author: Nathan Hoad
+Author-email: nathan@getoffmalawn.com
+License: Apache 2.0
+Description: Gbulb is a python library that implements a PEP 3156 interface for the GLib main event loop. It is designed to be used together with the tulip reference implementation.
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >3.5

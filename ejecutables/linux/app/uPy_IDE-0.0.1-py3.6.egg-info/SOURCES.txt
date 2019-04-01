@@ -1,0 +1,14 @@
+README.rst
+setup.py
+uPy_IDE/__init__.py
+uPy_IDE/__main__.py
+uPy_IDE/app.py
+uPy_IDE/cli.py
+uPy_IDE/esptool.py
+uPy_IDE/files.py
+uPy_IDE/pyboard.py
+uPy_IDE/serialport.py
+uPy_IDE.egg-info/PKG-INFO
+uPy_IDE.egg-info/SOURCES.txt
+uPy_IDE.egg-info/dependency_links.txt
+uPy_IDE.egg-info/top_level.txt
