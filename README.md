@@ -7,7 +7,7 @@ Hasta ahora solo se ha creado un ejecutable que es para Linux. Sin embargo, el p
 
 Para ello ver los minimos requisitos aquí: https://github.com/pybee/toga/blob/master/README.rst
 
-Una vez que se tengan
+Una vez que se tengan los requerimientos instalados y se haya clonado el repositorio localmente. Abrir una terminal fuera de la carpeta del proyecto y ejecutar uno de los proximos comandos:
 
 `python -m uPy_IDE`
 o
