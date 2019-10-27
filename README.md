@@ -26,6 +26,8 @@ source venv/bin/activate
 pip install --pre toga
 pip install pyserial
 pip install python-dotenv
+
+pip install click
 ~~~~
 
 
