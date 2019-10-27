@@ -1,12 +1,22 @@
-import toga
-from toga.style import Pack
-from toga.constants import COLUMN, ROW
+import glob
 import os
 import sys
-import glob
-import serial
 import time
+
+import serial
+import toga
 import uPy_IDE.esptool as esptool
+from toga.constants import COLUMN, ROW
+from toga.style.pack import *
+
+# TODO: Exportar un ejecutable de Windows
+
+# Correr en un proceso aparte para que no se congele la UI
+def run_in_process(self, button, code_to_run):
+	import timeit
+	elapsed_time = timeit.timeit(code_to_run, number=1) # just to save it somewhere
+	return elapsed_time
+
 
 def serial_ports():
 	if sys.platform.startswith('win'):
@@ -55,29 +65,23 @@ class uPyIDE(toga.App):
 		self.commandesp=toga.TextInput(style=Pack(flex=1,width=450))
 
 		#intento de terminal
-		self.textterminal=toga.MultilineTextInput(readonly=False,style=Pack(flex=1,width=600,height=600))
+		self.textterminal=toga.MultilineTextInput(id='terminal')
 
 		#textoutputs
-		self.textoutputs=toga.MultilineTextInput(readonly=True,style=Pack(flex=1,width=200,height=200))
-
-		#botones
-		self.btnport=toga.Button("Abrir puerto", on_press=self.open_port, style=Pack(padding=2))
+		self.textoutputs=toga.MultilineTextInput(id='output')
 
 
 		self.filelabel=toga.Label("No ha seleccionado ningun archivo", style=Pack(padding=2))
 		self.fname=None
-		self.main_window.content=toga.Box(
-			children=[
-				toga.Box(style=box_style_verti, children=[
-
-					toga.Box(style=Pack(direction=ROW,padding_left=25), children=[
+		# definir los hijos del main box afuera del main box
+		left_box = toga.Box(style=box_style_verti)
+		left_box.add(toga.Box(style=Pack(direction=ROW,padding_left=25), children=[
 						self.portselect,
 						self.chipselect,
 						self.verselect,
 						self.switchdio
-						]),
-
-					toga.Box(style=Pack(direction=COLUMN,padding_top=7), children=[
+						]))
+		left_box.add(toga.Box(style=Pack(direction=COLUMN,padding_top=7), children=[
 						toga.Button("Ver archivos en ESP", on_press=self.read_files, style=Pack(padding_top=15,padding_left=2)),
 						toga.Button("Seleccionar archivo", on_press=self.action_open_file_dialog, style=Pack(padding=2)),
 						self.filelabel,
@@ -87,27 +91,44 @@ class uPyIDE(toga.App):
 						toga.Button("Borrar archivo de ESP", on_press=self.erase_from_esp, style=Pack(padding=2)),
 						toga.Button("Obtener archivo de ESP", on_press=self.get_file_esp, style=Pack(padding=2)),
 						self.textoutputs
-						])
-					]),
-				toga.Box(style=box_style_verti, children=[					
-					toga.Button("Flashear",on_press=self.flash),
-					toga.Button("Borrar flash/firmware",on_press=self.eraseflash),
-					toga.Button("Actualizar puertos",on_press=self.update_ports),
-					self.btnport,
-					self.textterminal,
-					
-					toga.Box(style=Pack(direction=ROW,padding_top=7), children=[
+						]))
+
+		# Cambio en la estructura de los boxes para que funcione el rendering de los hijos en Windows, el bug es propio de toga al momento de presentar los boxes
+		# Agregar hijos de right_box
+		# right_box = toga.Box(style=box_style_verti)
+		# right_box.add(toga.Button("Flashear",on_press=self.flash, style=Pack(padding=2)))
+		# right_box.add(toga.Button("Borrar flash/firmware",on_press=self.eraseflash, style=Pack(padding=2)))
+		# right_box.add(toga.Button("Actualizar puertos",on_press=self.update_ports, style=Pack(padding=2)))
+		# right_box.add(toga.Button("Abrir puerto", on_press=self.open_port, style=Pack(padding=2)))
+		# right_box.add(self.textterminal)
+		# right_box.add(toga.Box(style=Pack(direction=ROW,padding_top=7), children=[
+		# 				self.commandesp,
+		# 				toga.Button("Enviar comando", on_press=self.send_command, style=Pack(padding=2))
+		# 				])
+		# 			)
+
+		left_box.add(toga.Button("Flashear",on_press=self.flash, style=Pack(padding=2)))
+		left_box.add(toga.Button("Borrar flash/firmware",on_press=self.eraseflash, style=Pack(padding=2)))
+		left_box.add(toga.Button("Actualizar puertos",on_press=self.update_ports, style=Pack(padding=2)))
+		left_box.add(toga.Button("Abrir puerto", on_press=self.open_port, style=Pack(padding=2)))
+		left_box.add(self.textterminal)
+		left_box.add(toga.Box(style=Pack(direction=ROW,padding_top=7), children=[
 						self.commandesp,
 						toga.Button("Enviar comando", on_press=self.send_command, style=Pack(padding=2))
 						])
+					)
+		
+		container = toga.Box()
+		container.add(left_box)
+		# container.add(right_box)
 
-					])
-
-				])
+		self.main_window.content = container
 
 		self.main_window.show()
 
-	#metodos para la parte de ampy
+
+	# TODO: hacer que los metodos inernos sean multi-procesos
+	# metodos para la parte de ampy
 	def read_files(self,button):
 		from uPy_IDE.pyboard import Pyboard
 		from uPy_IDE import cli
@@ -163,7 +184,8 @@ class uPyIDE(toga.App):
 		self.textterminal.value=fdata
 
 #======================================SOLO MANEJO DE PUERTO========================================================
-	
+
+
 	def open_port(self,button):
 		from uPy_IDE.pyboard import Pyboard
 		if not self.port_open:
@@ -177,6 +199,7 @@ class uPyIDE(toga.App):
 			self.btnport.label="Abrir puerto"
 			self.port_open=False
 			self.port.exit_raw_repl()
+		
 
 	def send_command(self,button):
 		if self.port_open:
